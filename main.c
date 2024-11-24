@@ -142,14 +142,14 @@ void carregarEstatisticas(Estatisticas *estatisticas) {
 void exibirMenuPrincipal() {
     printf("=== Menu Principal ===\n");
     printf("1. Iniciar Jogo\n");
-    printf("2. Estatísticas\n");
+    printf("2. Estatisticas\n");
     printf("3. Sair\n");
 }
 
 void exibirEstatisticas(Estatisticas *estatisticas) {
-    printf("\n=== Estatísticas ===\n");
-    printf("Vitórias Jogador 1 (X): %d\n", estatisticas->vitoriaX);
-    printf("Vitórias Jogador 2 (0): %d\n", estatisticas->vitoria0);
+    printf("\n=== Estatisticas ===\n");
+    printf("Vitorias Jogador 1 (X): %d\n", estatisticas->vitoriaX);
+    printf("Vitorias Jogador 2 (0): %d\n", estatisticas->vitoria0);
     printf("Rodadas Jogadas: %d\n", estatisticas->rodadas);
 }
 
@@ -166,7 +166,7 @@ void jogar() {
         inicializarMatriz(&jogo);
         char nomeArquivo[20];
         sprintf(nomeArquivo, "fase%d.txt", faseAtual);
-        carregarFase(&jogo, nomeArquivo); // Carrega a fase do arquivo
+        carregarFase(&jogo, nomeArquivo);
 
         do {
             imprimir(&jogo);
@@ -200,7 +200,7 @@ void jogar() {
         salvarEstatisticas(&estatisticas);
         liberarMatriz(&jogo);
         faseAtual++;
-    } while (faseAtual <= 5); // Limita a 5 fases
+    } while (faseAtual <= 5);
 }
 
 int main() {
@@ -208,7 +208,7 @@ int main() {
 
     do {
         exibirMenuPrincipal();
-        printf("Escolha uma opção: ");
+        printf("Escolha uma opcao: ");
         scanf("%d", &opcao);
 
         switch (opcao) {
@@ -222,10 +222,10 @@ int main() {
                 break;
             }
             case 3:
-                printf("\nSaindo do jogo. Até mais!\n");
+                printf("\nSaindo do jogo. Ate mais!\n");
                 break;
             default:
-                printf("\nOpção inválida! Tente novamente.\n");
+                printf("\nOpcao invalida! Tente novamente.\n");
         }
     } while (opcao != 3);
 
