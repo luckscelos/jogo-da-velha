@@ -50,11 +50,11 @@ int ganhouPorLinha(Jogo *jogo, int l, char c) {
 }
 
 int ganhouPorLinhas(Jogo *jogo, char c) {
-    int ganhou = 0;
     for (int l = 0; l < 3; l++) {
-        ganhou += ganhouPorLinha(jogo, l, c);
+        if (ganhouPorLinha(jogo, l, c))
+            return 1;
     }
-    return ganhou;
+    return 0;
 }
 
 int ganhouPorColuna(Jogo *jogo, int c, char j) {
@@ -62,11 +62,11 @@ int ganhouPorColuna(Jogo *jogo, int c, char j) {
 }
 
 int ganhouPorColunas(Jogo *jogo, char j) {
-    int ganhou = 0;
     for (int c = 0; c < 3; c++) {
-        ganhou += ganhouPorColuna(jogo, c, j);
+        if (ganhouPorColuna(jogo, c, j))
+            return 1;
     }
-    return ganhou;
+    return 0;
 }
 
 int ganhouPorDiagPrin(Jogo *jogo, char c) {
@@ -84,13 +84,22 @@ int ehValida(Jogo *jogo, int l, int c) {
 void lerCoordenadas(Jogo *jogo, char j) {
     int linha, coluna;
 
-    printf("Digite linha e coluna: ");
-    scanf("%d%d", &linha, &coluna);
+    printf("Digite a linha (0, 1, 2): ");
+    scanf("%d", &linha);
 
-    while (ehValida(jogo, linha, coluna) == 0) {
-        printf("Coordenadas invalidas! Digite outra linha e coluna: ");
-        scanf("%d%d", &linha, &coluna);
+    printf("Digite a coluna (0, 1, 2): ");
+    scanf("%d", &coluna);
+
+    while (!ehValida(jogo, linha, coluna)) {
+        printf("Coordenadas invalidas! Digite outra linha e outra coluna.\n");
+        
+        printf("Digite a linha (0, 1, 2): ");
+        scanf("%d", &linha);
+
+        printf("Digite a coluna (0, 1, 2): ");
+        scanf("%d", &coluna);
     }
+
     jogo->matriz[linha][coluna] = j;
 }
 
@@ -98,25 +107,12 @@ int quantVazias(Jogo *jogo) {
     int quantidade = 0;
 
     for (int l = 0; l < 3; l++) {
-        for (int c = 0; c < 3; c++)
+        for (int c = 0; c < 3; c++) {
             if (jogo->matriz[l][c] == ' ')
                 quantidade++;
-    }
-    return quantidade;
-}
-
-void carregarFase(Jogo *jogo, const char *nomeArquivo) {
-    FILE *arquivo = fopen(nomeArquivo, "r");
-    if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo %s\n", nomeArquivo);
-        return;
-    }
-    for (int l = 0; l < 3; l++) {
-        for (int c = 0; c < 3; c++) {
-            fscanf(arquivo, " %c", &jogo->matriz[l][c]);
         }
     }
-    fclose(arquivo);
+    return quantidade;
 }
 
 void salvarEstatisticas(Estatisticas *estatisticas) {
@@ -153,6 +149,13 @@ void exibirEstatisticas(Estatisticas *estatisticas) {
     printf("Rodadas Jogadas: %d\n", estatisticas->rodadas);
 }
 
+int verificarVitoria(Jogo *jogo, char jogador) {
+    return ganhouPorLinhas(jogo, jogador) || 
+           ganhouPorColunas(jogo, jogador) || 
+           ganhouPorDiagPrin(jogo, jogador) || 
+           ganhouPorDiagSec(jogo, jogador);
+}
+
 void jogar() {
     Jogo jogo;
     Estatisticas estatisticas = {0, 0, 0};
@@ -164,37 +167,34 @@ void jogar() {
 
     do {
         inicializarMatriz(&jogo);
-        char nomeArquivo[20];
-        sprintf(nomeArquivo, "fase%d.txt", faseAtual);
-        carregarFase(&jogo, nomeArquivo);
 
+        int venceu = 0;
         do {
             imprimir(&jogo);
             if (jogador == 1) {
                 lerCoordenadas(&jogo, jogador1);
-                jogador++;
-                estatisticas.vitoriaX += ganhouPorLinhas(&jogo, jogador1);
-                estatisticas.vitoriaX += ganhouPorColunas(&jogo, jogador1);
-                estatisticas.vitoriaX += ganhouPorDiagPrin(&jogo, jogador1);
-                estatisticas.vitoriaX += ganhouPorDiagSec(&jogo, jogador1);
+                venceu = verificarVitoria(&jogo, jogador1);
+                if (venceu) {
+                    estatisticas.vitoriaX++;
+                    printf("\nParabens Jogador 1. Voce venceu!!!\n");
+                    break;
+                }
+                jogador = 2;
             } else {
                 lerCoordenadas(&jogo, jogador2);
+                venceu = verificarVitoria(&jogo, jogador2);
+                if (venceu) {
+                    estatisticas.vitoria0++;
+                    printf("\nParabens Jogador 2. Voce venceu!!!\n");
+                    break;
+                }
                 jogador = 1;
-                estatisticas.vitoria0 += ganhouPorLinhas(&jogo, jogador2);
-                estatisticas.vitoria0 += ganhouPorColunas(&jogo, jogador2);
-                estatisticas.vitoria0 += ganhouPorDiagPrin(&jogo, jogador2);
-                estatisticas.vitoria0 += ganhouPorDiagSec(&jogo, jogador2);
             }
-        } while (estatisticas.vitoriaX == 0 && estatisticas.vitoria0 == 0 && quantVazias(&jogo) > 0);
+        } while (quantVazias(&jogo) > 0);
 
-        imprimir(&jogo);
-
-        if (estatisticas.vitoria0 == 1)
-            printf("\nParabens Jogador 2. Voce venceu!!!\n");
-        else if (estatisticas.vitoriaX == 1)
-            printf("\nParabens Jogador 1. Voce venceu!!!\n");
-        else
-            printf("\nQue pena. Perderam!!!\n");
+        if (!venceu) {
+            printf("\nEmpate! Ninguem venceu.\n");
+        }
 
         estatisticas.rodadas++;
         salvarEstatisticas(&estatisticas);
